@@ -1,6 +1,5 @@
 FROM ubuntu:18.04
 
-ARG AntMediaServer
 ARG MongoDBServer=
 ARG MongoDBUsername=
 ARG MongoDBPassword=
@@ -8,7 +7,11 @@ ARG MongoDBPassword=
 RUN apt-get update
 RUN apt-get install -y libcap2 wget net-tools
 
-ADD ./${AntMediaServer} /home
+RUN cd home \
+    && pwd \
+    && wget https://github.com/ant-media/Ant-Media-Server/releases/download/ams-v2.0.0/ant-media-server-2.0.0-community-2.0.0-20200504_1842.zip
+
+ARG AntMediaServer=ant-media-server-2.0.0-community-2.0.0-20200504_1842.zip
 
 RUN cd home \
     && pwd \
@@ -24,4 +27,8 @@ RUN /bin/bash -c 'if [ ! -z "${MongoDBServer}" ]; then \
                     /usr/local/antmedia/change_server_mode.sh cluster ${MongoDBServer} ${MongoDBUsername} ${MongoDBPassword}; \
                  fi'
 
-ENTRYPOINT service antmedia start && /bin/bash
+RUN apt-get remove openjdk-11* -y                 
+                 
+WORKDIR /usr/local/antmedia
+
+ENTRYPOINT ./start.sh
